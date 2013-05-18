@@ -6,4 +6,4 @@
   :dependencies [[org.clojure/clojure "1.4.0"]
                 [cheshire "5.0.2"]
                 [clj-http "0.6.4"]
-                ])
+                [clj-oauth "1.4.0"]])
