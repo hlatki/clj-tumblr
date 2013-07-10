@@ -1,22 +1,7 @@
 (ns clj-tumblr.core
-    (:require [clj-http.client :as http]
-              [cheshire.core :as json]
-              [oauth.client :as oauth]))
-
-
-
-
-
-
-
-
-(def base-url "http://api.tumblr.com/v2/blog/")
-
-
-(defn api-url
-  "Base URL for interacting with a particular blog: http://api.tumblr.com/v2/blog/yourblog.tumblr.com/"
-  [blog-name]
-  (str base-url blog-name))
+  (:require [clj-http.client :as http]
+            [cheshire.core :as json]
+            [oauth.client :as oauth]))
 
 (defn get-body
   "Get the :body of the response to an http GET"
@@ -35,41 +20,32 @@
   [param-map]
   (reduce str (map #(str "&" (name (key %)) "=" (val %)) param-map)))
 
+
 (defn api-call
-  "Simple API call"
-  [blog-name call api-key & optional-params]
-  (to-clj (get-body (str (api-url blog-name) "/" call "?" "api_key=" api-key (map-to-get-params optional-params)))))
+  "Note that this is the base used internally.  You shouldn't ever have to call it.
+   This actually does the API call. It takes a map with the following keys:
+    :base -- either blog or user
+    :ident -- either the username or the name of the blog (blogname.tumblr.com)
+    :call -- the API call (e.g. likes,avatar,info etc.)
 
-(defn info
-  "Blog info.  Requires API key."
-  [blog-name api-key]
-  (to-clj (get-body (str (api-url blog-name) "/info?api_key=" api-key))))
-
-
-(defn avatar
-  "Get an avatar. Takes blog name and (optionally) a size."
-  [blog-name & size]
-  (get-body (str (api-url blog-name) "/avatar/" size)))
-
-;;(defn likes
-;;  "Get a blog's likes.  Optionally you can have set limit and offset.  Ex. (likes blog-name api-key {:limit 5 :offset 2}) "
-;;  [blog-name api-key & param-map]
-;;  (to-clj (get-body (str (api-url blog-name) "/likes?api_key=" api-key (if param-map (map-to-get-params param-map))))))
+    :auth -- right now this is just the API key (until I figure out this OAuth business)
 
 
-(defn likes
-  "Get a blog's likes.  Optionally you can have set limit and offset.  Ex. (likes blog-name api-key {:limit 5 :offset 2}) "
-  [blog-name api-key & param-map]
-  (api-call blog-name "likes" api-key param-map))
+    options is an optional map of all those optional params you can tack on to a request
+    (e.g. {:limit 5 :offest 10})
+
+    api-call will return a map version of the JSON returned by Tumblr.
+  "
+  [{:keys [base ident call auth]} & [options] ]
+  (let [url (format "http://api.tumblr.com/v2/%s/%s/%s?api_key=%s" base ident call auth)]
+  to-clj (get-body (str url (map-to-get-params options)))))
 
 
 
-(likes tumblr oauth-key)
 
-(+ 25 5)
 
- ;;(info tumblr oauth-key)
- ;;(avatar blog-name 20)
- ;;(avatar blog-name)
+
+
+
 
 
